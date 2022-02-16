@@ -1,29 +1,56 @@
 using PlantCam.Services;
 using PlantCam.Services.Interfaces;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add services to the container.
+Log.Information("Starting up");
 
-builder.Services.AddScoped<IFrameService>(_ => new FrameService());
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    // Add logging
+    builder.Logging.ClearProviders();
+    builder.Host.UseSerilog((ctx, lc) => lc
+        .WriteTo.Console()
+        .ReadFrom.Configuration(ctx.Configuration));
+    // Add services to the container.
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
+    builder.Services.AddScoped<IFrameService>(_ => new FrameService());
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    //if (app.Environment.IsDevelopment())
+    //{
     app.UseSwagger();
     app.UseSwaggerUI();
-//}
+    //}
 
-app.UseHttpsRedirection();
+    app.UseSerilogRequestLogging();
 
-app.UseAuthorization();
+    app.UseHttpsRedirection();
 
-app.MapControllers();
+    app.UseAuthorization();
 
-app.Run();
+    app.MapControllers();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unhandled exception");
+}
+finally
+{
+    Log.Information("Shut down complete");
+    Log.CloseAndFlush();
+}
