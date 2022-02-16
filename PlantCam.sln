@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantCam", "PlantCam\PlantCam.csproj", "{85CC2131-99C1-4E89-94A8-7313749DD425}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85CC2131-99C1-4E89-94A8-7313749DD425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85CC2131-99C1-4E89-94A8-7313749DD425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85CC2131-99C1-4E89-94A8-7313749DD425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85CC2131-99C1-4E89-94A8-7313749DD425}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2E723167-344D-472E-95E6-48C391DABA5F}
+	EndGlobalSection
+EndGlobal
