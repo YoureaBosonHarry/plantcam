@@ -1,3 +1,5 @@
+using PlantCam.Repositories;
+using PlantCam.Repositories.Interfaces;
 using PlantCam.Services;
 using PlantCam.Services.Interfaces;
 using Serilog;
@@ -19,8 +21,9 @@ try
         .WriteTo.Console()
         .ReadFrom.Configuration(ctx.Configuration));
     // Add services to the container.
-
-    builder.Services.AddScoped<IFrameService>(_ => new FrameService());
+    var connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+    builder.Services.AddScoped<IFrameRepository>(_ => new FrameRepository(connectionString));
+    builder.Services.AddScoped<IFrameService>(i => new FrameService(i.GetService<IFrameRepository>()));
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();

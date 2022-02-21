@@ -2,28 +2,50 @@
 using MMALSharp.Common;
 using MMALSharp.Handlers;
 using PlantCam.Models;
+using PlantCam.Repositories.Interfaces;
 using PlantCam.Services.Interfaces;
+using System.Diagnostics;
 
 namespace PlantCam.Services
 {
     public class FrameService: IFrameService
     {
         private readonly Serilog.ILogger log;
-        public FrameService()
+        private MMALCamera camera;
+        private readonly IFrameRepository frameRepository;
+        public FrameService(IFrameRepository frameRepository)
         {
             this.log = Serilog.Log.ForContext<FrameService>();
+            this.camera = MMALCamera.Instance;
+            this.frameRepository = frameRepository;
         }
 
         public async Task TakePhotoAsync(SnapshotRequest snapshotRequest)
         {
-            MMALCamera cam = MMALCamera.Instance;
-            var filePath = snapshotRequest.FilePath ?? $"/app/images/{snapshotRequest.PlantName.ToLower().Replace(" ", "_")}";
-            this.log.Information($"Writing snapshot for object {snapshotRequest.PlantName} to directory {filePath}");
-            using (var imgCaptureHandler = new ImageStreamCaptureHandler(filePath, "jpg"))
+            try
             {
-                await cam.TakePicture(imgCaptureHandler, MMALEncoding.JPEG, MMALEncoding.I420);
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+                var captureHandler = new InMemoryCaptureHandler();
+                await this.camera.TakePicture(captureHandler, MMALEncoding.JPEG, MMALEncoding.I420);
+                var outputFrames = captureHandler.WorkingData;
+                stopWatch.Stop();
+                this.log.Information($"Captured {outputFrames.Count} frames in {stopWatch.ElapsedMilliseconds} ms");
+                var snapshot = new Snapshot
+                {
+                    CameraUUID = snapshotRequest.CameraUUID,
+                    PlantUUID = snapshotRequest.PlantUUID,
+                    SnapshotUUID = Guid.NewGuid(),
+                    SnapshotData = Convert.ToBase64String(outputFrames.ToArray()),
+                    SnapshotMetadata = snapshotRequest.SnapshotMetadata
+                };
+                var storedSnapshot = await this.frameRepository.AddSnapshotAsync(snapshot);
+                this.log.Information($"Successfully stored new frame {storedSnapshot.SnapshotUUID} for plant: {storedSnapshot.PlantUUID}");
             }
-            cam.Cleanup();
+            catch (Exception ex)
+            {
+                this.log.Error($"Unhandled Exception: {ex.Message}");
+            }
         }
     }
 }
